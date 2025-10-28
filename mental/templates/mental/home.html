@@ -820,7 +820,7 @@
             name: fullName,
             firstName: firstName,
             age: parseInt("{{ age|default:'28'|escapejs }}"),
-            mentalHealthScore: parseInt("{{ mental_health_score|default:'72'|escapejs }}"),
+            mentalHealthScore: parseInt("{{ mood_score|default:'72'|escapejs }}"),
             status: "{{ status|default:'good'|escapejs }}"
         };
 

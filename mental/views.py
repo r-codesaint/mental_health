@@ -4,11 +4,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import User, SurveyResponse
 import json
+import logging
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import joblib
 import os
 import numpy as np
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # def home(request):
 #     User=User.objects.all()
@@ -298,43 +302,36 @@ def survey(request):
                     'care_options': data.get('care_options')
                 }])
 
-            # Load the trained model
-            model_path = os.path.join(os.path.dirname(__file__), 'trained_model.joblib')
-            model = joblib.load(model_path)
-
-            # Make prediction(s). The saved artifact may be a dict of models or a single model.
+            # Initialize default values
             mood_level = 'Medium'  # default
             mood_score = 50  # default score out of 100
             
             try:
-                if isinstance(model, dict):
-                    # Expect keys like 'high','low','medium'
-                    ph = model.get('high').predict_proba(input_df)[0][1] if model.get('high') is not None else 0
-                    pl = model.get('low').predict_proba(input_df)[0][1] if model.get('low') is not None else 0
-                    pm = model.get('medium').predict_proba(input_df)[0][1] if model.get('medium') is not None else 0
-                    
-                    # Calculate mood score (0-100)
-                    mood_score = int((ph * 100 + pm * 50 + pl * 0) / max(ph + pm + pl, 1))
-                    
-                    # Determine mood level
-                    if ph > max(pl, pm):
-                        mood_level = 'High'
-                    elif pl > max(ph, pm):
-                        mood_level = 'Low'
-                    else:
-                        mood_level = 'Medium'
+                # Get sleep hours and screen time from input data
+                sleep_hours = float(data.get('sleep_hours', 0))
+                watch_time = float(data.get('screen_hours', 0))
+
+                # Calculate mood score based on sleep and screen time
+                if sleep_hours < 6 and watch_time > 7:
+                    # Poor sleep and high screen time - calculate score in 0-40 range
+                    base_score = 40 - ((6 - sleep_hours) * 5) - ((watch_time - 7) * 2)
+                    mood_score = max(0, min(40, base_score))
+                    mood_level = 'Low'
+                elif 6 <= sleep_hours <= 9 and watch_time < 4:
+                    # Good sleep and low screen time - calculate score in 50-100 range
+                    base_score = 75 + ((8 - sleep_hours) * 5) + ((4 - watch_time) * 5)
+                    mood_score = max(50, min(100, base_score))
+                    mood_level = 'High' if mood_score >= 80 else 'Good'
                 else:
-                    # Single model with predict_proba
-                    try:
-                        proba = model.predict_proba(input_df)[0]
-                        mood_score = int(proba[1] * 100)  # Convert probability to score
-                        val = np.array(model.predict(input_df)).ravel()[0]
-                        mood_level = 'High' if int(val) == 1 else 'Medium'
-                    except Exception:
-                        # Fallback if predict_proba not available
-                        val = model.predict(input_df)[0]
-                        mood_level = 'High' if int(val) == 1 else 'Medium'
-                        mood_score = 75 if mood_level == 'High' else 50
+                    # Moderate conditions - score in 40-50 range
+                    base_score = 45 + ((sleep_hours - 6) * 2) - ((watch_time - 4) * 2)
+                    mood_score = max(40, min(50, base_score))
+                    mood_level = 'Medium'
+                
+                # Round the final score to an integer
+                mood_score = int(round(mood_score))
+
+                logging.info(f'Calculated mood_score: {mood_score}, mood_level: {mood_level} based on sleep_hours: {sleep_hours}, watch_time: {watch_time}')
             except Exception as e:
                 # Prediction failed — keep default and log
                 print('Prediction error:', e)
