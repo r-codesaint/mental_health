@@ -32,6 +32,7 @@ class SurveyResponse(models.Model):
     mental_health_interview= models.CharField(max_length=5)
     care_options= models.CharField(max_length=5)
     mood_prediction = models.CharField(max_length=50, null=True)  # To store ML prediction
+    mood_score = models.IntegerField(null=True)  # To store mood score out of 100
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

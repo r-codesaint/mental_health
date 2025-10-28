@@ -10,5 +10,6 @@ urlpatterns = [
     path("signup/", views.signup, name="signup"),
     path("survey/", views.survey, name="survey"),
     path("dashboard/", views.dashboard, name="dashboard"),
-    path("logout/", views.logout_view, name="logout")
+    path("logout/", views.logout_view, name="logout"),
+    path("api/latest-score/", views.get_latest_score, name="get_latest_score")
 ]

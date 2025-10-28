@@ -21,13 +21,41 @@ def index(request):
 def dashboard(request):
     # Home/dashboard page shown after completing the survey
     # Require a logged in user (redirect to login if missing)
-    full_name = request.session.get('user_name')
-    if not full_name:
+    user_email = request.session.get('user_email')
+    if not user_email:
         return redirect('mental:login')
 
-    mood_prediction = request.session.get('mood_prediction', None)
-    # Pass prediction (or default) to template
-    return render(request, "mental/home.html", {"mood_prediction": mood_prediction, "full_name": full_name})
+    try:
+        # Get user data
+        user = User.objects.get(email=user_email)
+        # Get latest survey response
+        latest_survey = SurveyResponse.objects.filter(user=user).order_by('-created_at').first()
+
+        context = {
+            'user': user,
+            'full_name': f"{user.first_name} {user.last_name}",
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'username': user.username,
+            'join_date': user.created.strftime('%B %Y'),
+            'mood_prediction': latest_survey.mood_prediction if latest_survey else None,
+            'mood_score': latest_survey.mood_score if latest_survey else 50,
+            'survey_data': {
+                'gender': latest_survey.gender if latest_survey else '',
+                'occupation': latest_survey.occupation if latest_survey else '',
+                'country': latest_survey.country if latest_survey else 'India',
+                'self_employed': latest_survey.self_employed if latest_survey else '',
+                'family_history': latest_survey.family_history if latest_survey else '',
+                'treatment': latest_survey.treatment if latest_survey else '',
+                'days_indoors': latest_survey.days_indoors if latest_survey else '',
+                'growing_stress': latest_survey.growing_stress if latest_survey else '',
+                'changes_habits': latest_survey.changes_habits if latest_survey else '',
+            }
+        }
+        return render(request, "mental/home.html", context)
+    except User.DoesNotExist:
+        return redirect('mental:login')
 
 @csrf_exempt
 def login(request):
@@ -276,40 +304,49 @@ def survey(request):
 
             # Make prediction(s). The saved artifact may be a dict of models or a single model.
             mood_level = 'Medium'  # default
+            mood_score = 50  # default score out of 100
+            
             try:
                 if isinstance(model, dict):
                     # Expect keys like 'high','low','medium'
-                    ph = model.get('high').predict(input_df)[0].ravel()[0] if model.get('high') is not None else 0
-                    pl = model.get('low').predict(input_df)[0].ravel()[0] if model.get('low') is not None else 0
-                    pm = model.get('medium').predict(input_df)[0].ravel()[0] if model.get('medium') is not None else 0
-                    if ph == 1:
+                    ph = model.get('high').predict_proba(input_df)[0][1] if model.get('high') is not None else 0
+                    pl = model.get('low').predict_proba(input_df)[0][1] if model.get('low') is not None else 0
+                    pm = model.get('medium').predict_proba(input_df)[0][1] if model.get('medium') is not None else 0
+                    
+                    # Calculate mood score (0-100)
+                    mood_score = int((ph * 100 + pm * 50 + pl * 0) / max(ph + pm + pl, 1))
+                    
+                    # Determine mood level
+                    if ph > max(pl, pm):
                         mood_level = 'High'
-                    elif pl == 1:
+                    elif pl > max(ph, pm):
                         mood_level = 'Low'
-                    elif pm == 1:
-                        mood_level = 'Medium'
                     else:
                         mood_level = 'Medium'
                 else:
-                    # Single model (likely a MultiOutputClassifier trained for one target)
-                    pred = model.predict(input_df)
-                    # pred may be shape (1,1) or (1,)
-                    val = None
+                    # Single model with predict_proba
                     try:
-                        val = np.array(pred).ravel()[0]
+                        proba = model.predict_proba(input_df)[0]
+                        mood_score = int(proba[1] * 100)  # Convert probability to score
+                        val = np.array(model.predict(input_df)).ravel()[0]
+                        mood_level = 'High' if int(val) == 1 else 'Medium'
                     except Exception:
-                        val = pred[0][0] if hasattr(pred[0], '__iter__') else pred[0]
-                    mood_level = 'High' if int(val) == 1 else 'Medium'
+                        # Fallback if predict_proba not available
+                        val = model.predict(input_df)[0]
+                        mood_level = 'High' if int(val) == 1 else 'Medium'
+                        mood_score = 75 if mood_level == 'High' else 50
             except Exception as e:
                 # Prediction failed — keep default and log
                 print('Prediction error:', e)
 
-            # Save prediction
+            # Save prediction and score
             survey_response.mood_prediction = mood_level
+            survey_response.mood_score = mood_score
             survey_response.save()
 
-            # Store prediction in session for home page
+            # Store prediction and score in session for home page
             request.session['mood_prediction'] = mood_level
+            request.session['mood_score'] = mood_score
 
             return JsonResponse({
                 'status': 'success',
@@ -336,6 +373,47 @@ def logout_view(request):
     return redirect('mental:login')
 
 
-# def detail(request, pk):
-#     note = get_object_or_404(Note, pk=pk)
-#     return render(request, "mental/detail.html", {"note": note})
+# AJAX endpoint to get latest mental health score
+@csrf_exempt
+def get_latest_score(request):
+    """Get the latest mental health score for the current user."""
+    user_email = request.session.get('user_email')
+    if not user_email:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Not logged in'
+        }, status=401)
+
+    try:
+        user = User.objects.get(email=user_email)
+        latest_survey = SurveyResponse.objects.filter(user=user).order_by('-created_at').first()
+        
+        if latest_survey:
+            return JsonResponse({
+                'status': 'success',
+                'data': {
+                    'mood_score': latest_survey.mood_score,
+                    'mood_prediction': latest_survey.mood_prediction,
+                    'created_at': latest_survey.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                }
+            })
+        else:
+            return JsonResponse({
+                'status': 'success',
+                'data': {
+                    'mood_score': 50,  # default score
+                    'mood_prediction': 'Medium',
+                    'created_at': None
+                }
+            })
+            
+    except User.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'User not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
