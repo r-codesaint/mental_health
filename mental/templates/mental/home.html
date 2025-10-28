@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindWell - Your Wellness Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #4CAF93;
+            --warning: #F6AD55;
+            --danger: #FC8181;
+            --success: #68D391;
+            --dark: #2D3748;
+            --light: #F7FAFC;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary) !important;
+        }
+
+        .nav-link {
+            color: var(--dark) !important;
+            margin: 0 0.5rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary) !important;
+        }
+
+        .profile-dropdown {
+            cursor: pointer;
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Welcome Section */
+        .welcome-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .welcome-card h2 {
+            color: var(--dark);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-card p {
+            color: #718096;
+            margin: 0;
+        }
+
+        /* Mental Health Score Card */
+        .score-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            animation: fadeInUp 0.5s ease 0.1s backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-description {
+            text-align: center;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Recommendation Cards */
+        .recommendation-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .recommendation-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            height: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .recommendation-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 5px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .recommendation-card h4 {
+            color: var(--dark);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .recommendation-card p {
+            color: #718096;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .recommendation-card .btn {
+            width: 100%;
+            border-radius: 50px;
+            font-weight: 600;
+            padding: 0.75rem;
+        }
+
+        /* Category specific colors */
+        .music-card .recommendation-icon {
+            background: linear-gradient(135deg, #F093FB, #F5576C);
+        }
+
+        .movie-card .recommendation-icon {
+            background: linear-gradient(135deg, #4FACFE, #00F2FE);
+        }
+
+        .fitness-card .recommendation-icon {
+            background: linear-gradient(135deg, #43E97B, #38F9D7);
+        }
+
+        .travel-card .recommendation-icon {
+            background: linear-gradient(135deg, #FA709A, #FEE140);
+        }
+
+        .counselor-card .recommendation-icon {
+            background: linear-gradient(135deg, #A8EDEA, #FED6E3);
+        }
+
+        .ngo-card .recommendation-icon {
+            background: linear-gradient(135deg, #FF9A9E, #FAD0C4);
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 1.5rem 2rem;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .service-item {
+            background: var(--light);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .service-item:hover {
+            transform: translateX(5px);
+        }
+
+        .service-item h5 {
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-item p {
+            color: #718096;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .rating {
+            color: #F6AD55;
+        }
+
+        /* Profile Section */
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .form-control, .form-select, textarea {
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .badge-status {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-excellent { background: var(--success); color: white; }
+        .status-good { background: var(--secondary); color: white; }
+        .status-moderate { background: var(--warning); color: white; }
+        .status-low { background: var(--danger); color: white; }
+
+        @media (max-width: 768px) {
+            .score-circle {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .score-number {
+                font-size: 2.5rem;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-brain"></i> MindWell</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link active" href="#dashboard">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#recommendations">Recommendations</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showProfile()">My Profile</a></li>
+                    <li class="nav-item ms-3">
+                        <div class="dropdown">
+                            <div class="d-flex align-items-center gap-2 profile-dropdown" data-bs-toggle="dropdown">
+                                <div class="profile-avatar">JD</div>
+                                <span class="d-none d-md-inline">John Doe</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="showProfile()"><i class="fas fa-user"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-container" id="dashboardView">
+        <!-- Welcome Section -->
+        <div class="welcome-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2>Welcome back, John! 🎉</h2>
+                    <p>Here's your mental wellness assessment based on your recent survey</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <small class="text-muted">Last updated: <strong>Today</strong></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mental Health Score Card -->
+        <div class="score-card">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <div class="score-circle">
+                        <div class="score-number" id="healthScore">72</div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <h3 class="score-label">Your Mental Wellness Score</h3>
+                    <p class="score-description" id="scoreDescription">
+                        Your mental health is in a <strong>Good</strong> state. You're managing well, but there's room for improvement. We recommend focusing on stress management and maintaining healthy habits.
+                    </p>
+                    <div class="mt-3">
+                        <span class="badge-status status-good" id="statusBadge">Good Mental Health</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div class="recommendation-section" id="recommendations">
+            <h2 class="section-title">🎯 Personalized Recommendations For You</h2>
+            
+            <div class="row g-4 mb-4">
+                <!-- Music Therapy -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="recommendation-card music-card" onclick="showMusicTherapy()">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <h4>Music Therapy</h4>
+                        <p>Reduce stress and anxiety through curated playlists and therapeutic music sessions</p>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #F093FB, #F5576C); border: none;">
+                            <i class="fas fa-headphones"></i> Explore Music
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Movie Entertainment -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="recommendation-card movie-card" onclick="showMovieTherapy()">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <h4>Movie Entertainment</h4>
+                        <p>Uplifting movies and shows to boost your mood and provide positive distraction</p>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #4FACFE, #00F2FE); border: none;">
+                            <i class="fas fa-play"></i> Watch Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Physical Activities -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="recommendation-card fitness-card" onclick="showFitnessOptions()">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <h4>Physical Activities</h4>
+                        <p>Zumba, Gym, Dance, Yoga - Find nearby clubs and wellness centers</p>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #43E97B, #38F9D7); border: none;">
+                            <i class="fas fa-running"></i> Find Centers
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Travel & Adventure -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="recommendation-card travel-card" onclick="showTravelOptions()">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <h4>Travel & Explore</h4>
+                        <p>Discover new places, refresh your mind with travel packages and destinations</p>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #FA709A, #FEE140); border: none;">
+                            <i class="fas fa-map-marked-alt"></i> Plan Trip
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Professional Counseling -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="recommendation-card counselor-card" onclick="showCounselorOptions()">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h4>Professional Help</h4>
+                        <p>Connect with licensed counselors and therapists for professional support</p>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #A8EDEA, #FED6E3); border: none;">
+                            <i class="fas fa-calendar-check"></i> Book Session
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NGO & Community Work -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="recommendation-card ngo-card" onclick="showNGOOptions()">
+                        <div class="recommendation-icon">
+                            <i class="fas fa-hands-helping"></i>
+                        </div>
+                        <h4>NGO & Volunteer Work</h4>
+                        <p>Find meaning through community service and volunteering opportunities</p>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #FF9A9E, #FAD0C4); border: none;">
+                            <i class="fas fa-heart"></i> Get Involved
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile View (Hidden by default) -->
+    <div class="dashboard-container" id="profileView" style="display: none;">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar-large" id="profileAvatarLarge">JD</div>
+                <div>
+                    <h2 id="profileName">John Doe</h2>
+                    <p class="text-muted mb-0">Member since October 2025</p>
+                </div>
+            </div>
+
+            <form id="profileForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" value="John Doe" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Age</label>
+                        <input type="number" class="form-control" id="profileAge" value="28" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" class="form-control" id="profileEmail" value="john.doe@email.com" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Phone</label>
+                        <input type="tel" class="form-control" id="profilePhone" value="+1 234 567 8900">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">About Me</label>
+                        <textarea class="form-control" id="aboutMe" rows="4" placeholder="Tell us about yourself...">Software engineer passionate about technology and mental wellness. I enjoy hiking, reading, and spending time with family.</textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Interests & Hobbies</label>
+                        <input type="text" class="form-control" id="interests" value="Technology, Hiking, Reading, Photography, Meditation" placeholder="Enter your interests separated by commas">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Preferred Activity</label>
+                        <select class="form-select" id="preferredActivity">
+                            <option>Physical Activities</option>
+                            <option>Creative Arts</option>
+                            <option>Social Activities</option>
+                            <option>Relaxation & Meditation</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Preferred Communication</label>
+                        <select class="form-select" id="preferredComm">
+                            <option>Video Call</option>
+                            <option>Phone Call</option>
+                            <option selected>Chat</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; border-radius: 50px; padding: 1rem 3rem;">
+                            <i class="fas fa-save"></i> Save Profile
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg ms-2" style="border-radius: 50px; padding: 1rem 3rem;" onclick="backToDashboard()">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Music Therapy Modal -->
+    <div class="modal fade" id="musicModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-music"></i> Music Therapy Options</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="service-item">
+                        <h5><i class="fas fa-spotify"></i> Spotify Wellness Playlists</h5>
+                        <p>Curated playlists for relaxation, focus, and mood improvement</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.8/5 | Free</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-headphones-alt"></i> Calm - Music & Meditation</h5>
+                        <p>Guided meditation with soothing music and nature sounds</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.9/5 | Premium Available</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-guitar"></i> Local Music Therapy Sessions</h5>
+                        <p>In-person music therapy with certified therapists near you</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.7/5 | $50-80/session</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fitness Options Modal -->
+    <div class="modal fade" id="fitnessModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-dumbbell"></i> Nearby Fitness & Wellness Centers</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="service-item">
+                        <h5><i class="fas fa-spa"></i> Serenity Yoga Studio</h5>
+                        <p>📍 2.3 miles away | Morning & Evening Classes | Beginner Friendly</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.9/5 | $40/month</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-heartbeat"></i> FitZone Gym & Zumba</h5>
+                        <p>📍 1.8 miles away | Zumba, Dance, Cardio | Personal Trainers Available</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.7/5 | $50/month</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-water"></i> Wellness Dance Academy</h5>
+                        <p>📍 3.1 miles away | Contemporary, Ballet, Hip-Hop, Therapeutic Dance</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.8/5 | $45/month</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Counselor Modal -->
+    <div class="modal fade" id="counselorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-md"></i> Professional Counselors & Therapists</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="service-item">
+                        <h5><i class="fas fa-user-circle"></i> Dr. Sarah Johnson, PhD</h5>
+                        <p>Clinical Psychologist | Specializes in Anxiety & Depression | 15+ years experience</p>
+                        <div class="rating"><i class="fas fa-star"></i> 5.0/5 | Video/In-Person | $120/session</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-user-circle"></i> Michael Chen, LMFT</h5>
+                        <p>Licensed Marriage & Family Therapist | Stress Management & Relationships</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.9/5 | Video/Phone | $100/session</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-phone-alt"></i> 24/7 Crisis Helpline</h5>
+                        <p>Immediate support available | Free & Confidential | Call: 1-800-273-8255</p>
+                        <div class="rating">⚡ Available Now | Free</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Travel Modal -->
+    <div class="modal fade" id="travelModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plane"></i> Travel & Adventure Options</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="service-item">
+                        <h5><i class="fas fa-mountain"></i> Mountain Retreat Package</h5>
+                        <p>3-day wellness retreat in the mountains | Yoga, Meditation, Nature Walks</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.9/5 | $599/person</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-umbrella-beach"></i> Beach Relaxation Getaway</h5>
+                        <p>5-day coastal escape | Beach activities, Spa treatments, Mindfulness sessions</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.8/5 | $899/person</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-hiking"></i> Weekend Nature Exploration</h5>
+                        <p>Local hiking trails and parks | Guided nature walks | Photography tours</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.7/5 | $150/weekend</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movie Therapy Modal -->
+    <div class="modal fade" id="movieModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-film"></i> Mood-Boosting Entertainment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="service-item">
+                        <h5><i class="fas fa-laugh"></i> Comedy & Feel-Good Movies</h5>
+                        <p>Curated list of uplifting comedies and heartwarming stories on Netflix, Amazon Prime</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.8/5 | Streaming Services</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-tv"></i> Inspirational Documentaries</h5>
+                        <p>Life-changing stories, nature documentaries, and motivational content</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.9/5 | Available on Disney+, HBO</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-theater-masks"></i> Local Cinema Experiences</h5>
+                        <p>Movie therapy sessions with group discussions | Monthly screenings</p>
+                        <div class="rating"><i class="fas fa-star"></i> 4.6/5 | $20/session</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NGO Options Modal -->
+    <div class="modal fade" id="ngoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-hands-helping"></i> Volunteer & NGO Opportunities</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="service-item">
+                        <h5><i class="fas fa-heart"></i> Hope Foundation</h5>
+                        <p>Community outreach programs | Weekend volunteering | Food drives & education support</p>
+                        <div class="rating">📅 Every Saturday & Sunday | Free to join</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-paw"></i> Animal Welfare Society</h5>
+                        <p>Animal care and rescue programs | Dog walking, shelter support</p>
+                        <div class="rating">📅 Flexible schedule | Free to join</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-seedling"></i> Green Earth Initiative</h5>
+                        <p>Environmental conservation | Tree planting, beach cleanups, sustainability projects</p>
+                        <div class="rating">📅 Monthly events | Free to join</div>
+                    </div>
+                    <div class="service-item">
+                        <h5><i class="fas fa-book-reader"></i> Teach & Inspire</h5>
+                        <p>Teaching underprivileged children | Tutoring programs | Skills workshops</p>
+                        <div class="rating">📅 Weekends available | Free to join</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize with user data (this would come from your backend/survey)
+        let userData = {
+            name: "John Doe",
+            age: 28,
+            mentalHealthScore: 72, // This would be calculated by ML model
+            status: "good" // excellent, good, moderate, low
+        };
+
+        // Set initial data
+        window.onload = function() {
+            updateDashboard();
+            animateScore();
+        };
+
+        function updateDashboard() {
+            const score = userData.mentalHealthScore;
+            let status, statusClass, description;
+
+            if (score >= 85) {
+                status = "Excellent Mental Health";
+                statusClass = "status-excellent";
+                description = "Outstanding! Your mental health is in excellent condition. Keep up with your healthy habits and continue enjoying life to the fullest.";
+            } else if (score >= 70) {
+                status = "Good Mental Health";
+                statusClass = "status-good";
+                description = "Your mental health is in a good state. You're managing well, but there's room for improvement. We recommend focusing on stress management and maintaining healthy habits.";
+            } else if (score >= 50) {
+                status = "Moderate Concerns";
+                statusClass = "status-moderate";
+                description = "Your mental health needs some attention. Consider trying our recommended activities and speaking with a professional counselor to improve your wellbeing.";
+            } else {
+                status = "Needs Attention";
+                statusClass = "status-low";
+                description = "We're concerned about your mental health. Please consider speaking with a professional counselor immediately. We're here to support you on your journey to better mental health.";
+            }
+
+            document.getElementById('statusBadge').textContent = status;
+            document.getElementById('statusBadge').className = 'badge-status ' + statusClass;
+            document.getElementById('scoreDescription').innerHTML = description;
+        }
+
+        function animateScore() {
+            const scoreElement = document.getElementById('healthScore');
+            const targetScore = userData.mentalHealthScore;
+            let currentScore = 0;
+            const increment = targetScore / 50;
+
+            const timer = setInterval(() => {
+                currentScore += increment;
+                if (currentScore >= targetScore) {
+                    scoreElement.textContent = targetScore;
+                    clearInterval(timer);
+                } else {
+                    scoreElement.textContent = Math.floor(currentScore);
+                }
+            }, 30);
+        }
+
+        // Modal functions
+        function showMusicTherapy() {
+            new bootstrap.Modal(document.getElementById('musicModal')).show();
+        }
+
+        function showMovieTherapy() {
+            new bootstrap.Modal(document.getElementById('movieModal')).show();
+        }
+
+        function showFitnessOptions() {
+            new bootstrap.Modal(document.getElementById('fitnessModal')).show();
+        }
+
+        function showTravelOptions() {
+            new bootstrap.Modal(document.getElementById('travelModal')).show();
+        }
+
+        function showCounselorOptions() {
+            new bootstrap.Modal(document.getElementById('counselorModal')).show();
+        }
+
+        function showNGOOptions() {
+            new bootstrap.Modal(document.getElementById('ngoModal')).show();
+        }
+
+        // Profile management
+        function showProfile() {
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('profileView').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function backToDashboard() {
+            document.getElementById('profileView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        // Profile form submission
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const profileData = {
+                fullName: document.getElementById('fullName').value,
+                age: document.getElementById('profileAge').value,
+                email: document.getElementById('profileEmail').value,
+                phone: document.getElementById('profilePhone').value,
+                aboutMe: document.getElementById('aboutMe').value,
+                interests: document.getElementById('interests').value,
+                preferredActivity: document.getElementById('preferredActivity').value,
+                preferredComm: document.getElementById('preferredComm').value
+            };
+
+            console.log('Profile Updated:', profileData);
+            
+            // Update navbar name
+            const firstName = profileData.fullName.split(' ')[0];
+            document.querySelector('.profile-dropdown span').textContent = profileData.fullName;
+            document.getElementById('profileName').textContent = profileData.fullName;
+            
+            // Update avatar initials
+            const initials = profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.querySelectorAll('.profile-avatar').forEach(el => el.textContent = initials);
+            document.getElementById('profileAvatarLarge').textContent = initials;
+
+            // Show success message
+            alert('✅ Profile updated successfully!');
+            
+            // Here you would send data to your backend
+            // fetch('/api/update-profile', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(profileData)
+            // });
+        });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                console.log('Logging out...');
+                // Clear session and redirect
+                window.location.href = '/login';
+            }
+        }
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.recommendation-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+
+        // Simulate ML prediction result (In real app, this comes from backend)
+        // You can modify this based on the survey answers
+        function simulateMHPrediction(surveyData) {
+            // This is where your ML model would calculate the score
+            // Based on: age, sleep_hours, screen_time, stress, family_history, etc.
+            
+            let score = 100; // Start with perfect score
+            
+            // Example calculations (you'd use your actual ML model)
+            if (surveyData.sleepHours < 6) score -= 15;
+            if (surveyData.screenTime > 8) score -= 10;
+            if (surveyData.growingStress === 'yes') score -= 20;
+            if (surveyData.familyHistory === 'yes') score -= 5;
+            if (surveyData.daysIndoors > 5) score -= 10;
+            if (surveyData.changesHabits === 'yes') score -= 15;
+            
+            return Math.max(0, Math.min(100, score));
+        }
+    </script>
+</body>
+</html>

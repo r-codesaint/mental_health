@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindWell - Complete Your Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #4CAF93;
+            --dark: #2D3748;
+            --light: #F7FAFC;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+
+        .header-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(27, 5, 73, 0.1);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .welcome-text {
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
+        .welcome-text h2 {
+            color: var(--dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-text p {
+            color: #718096;
+            margin: 0;
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 62, 62, 0.3);
+            color: white;
+        }
+
+        .survey-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .survey-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .survey-header h3 {
+            color: var(--dark);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .survey-header p {
+            color: #718096;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+
+        .radio-group, .checkbox-group {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .custom-radio, .custom-checkbox {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-radio input[type="radio"],
+        .custom-checkbox input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #CBD5E0;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-radio input[type="radio"]:checked {
+            border-color: var(--primary);
+            background: var(--primary);
+            box-shadow: inset 0 0 0 3px white;
+        }
+
+        .custom-checkbox input[type="radio"]:checked {
+            border-color: var(--primary);
+            background: var(--primary);
+            box-shadow: inset 0 0 0 3px white;
+        }
+
+        .custom-radio label,
+        .custom-checkbox label {
+            cursor: pointer;
+            color: var(--dark);
+            margin: 0;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(108, 99, 255, 0.3);
+        }
+
+        .progress-indicator {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #718096;
+        }
+
+        .required {
+            color: #e53e3e;
+        }
+
+        /* Prediction Overlay Styles */
+        .prediction-overlay, .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .prediction-content, .error-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .brain-wave {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        .prediction-steps {
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .step {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .step i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .step.pending {
+            opacity: 0.5;
+        }
+
+        .success-message {
+            color: var(--secondary);
+            font-weight: 600;
+            margin-top: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .error-content {
+            color: #e53e3e;
+        }
+
+        .error-content i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-content button {
+            margin-top: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .survey-container {
+                padding: 2rem 1.5rem;
+            }
+
+            .header-section {
+                padding: 1.5rem;
+            }
+
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <h1>MindWell</h1>
+                </div>
+                <div class="user-info">
+                    <span class="text-muted"><i class="fas fa-user-circle"></i> <span id="userName">John Doe</span></span>
+                    <button class="btn btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+            <div class="welcome-text">
+                <p>Let's personalize your mental wellness journey</p>
+            </div>
+        </div>
+
+        <!-- Survey Container -->
+        <div class="survey-container">
+            <div class="survey-header">
+                <div class="welcome-text">
+                <h2> Welcome, <span id="welcomeName">John</span>! 👋</h2>
+                <h3>Complete Your Profile</h3>
+                <p>Help us understand you better to provide personalized support</p>
+            </div>
+
+            <div class="progress-indicator">
+                <small><i class="fas fa-info-circle"></i> All fields are required</small>
+            </div>
+
+            <form id="onboardingForm">
+                <!-- Age -->
+                <div class="form-group">
+                    <label class="form-label">1. What is your age? <span class="required">*</span></label>
+                    <input type="number" class="form-control" id="age" name="age" min="13" max="120" placeholder="Enter your age" required>
+                </div>
+
+                <!-- Gender -->
+                <div class="form-group">
+                    <label class="form-label">2. What is your gender? <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="custom-radio">
+                            <input type="radio" id="male" name="gender" value="male" required>
+                            <label for="male">Male</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="female" name="gender" value="female">
+                            <label for="female">Female</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="other" name="gender" value="other">
+                            <label for="other">Other</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="prefer-not-say" name="gender" value="prefer-not-say">
+                            <label for="prefer-not-say">Prefer not to say</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sleep Hours -->
+                <div class="form-group">
+                    <label class="form-label">3. How many hours do you sleep per day? <span class="required">*</span></label>
+                    <input type="number" class="form-control" id="sleepHours" name="sleepHours" min="0" max="24" step="0.5" placeholder="e.g., 7.5" required>
+                </div>
+
+                <!-- Watch Time -->
+                <div class="form-group">
+                    <label class="form-label">4. How many hours do you spend on screens daily? (TV, phone, computer) <span class="required">*</span></label>
+                    <input type="number" class="form-control" id="watchTime" name="watchTime" min="0" max="24" step="0.5" placeholder="e.g., 5" required>
+                </div>
+
+                <!-- Occupation -->
+                <div class="form-group">
+                    <label class="form-label">5. What is your occupation? <span class="required">*</span></label>
+                    <select class="form-select" id="occupation" name="occupation" required>
+                        <option value="" selected disabled>Select your occupation</option>
+                        <option value="corporate">Corporate</option>
+                        <option value="student">Student</option>
+                        <option value="housewife">Housewife</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+
+                <!-- Family History -->
+                <div class="form-group">
+                    <label class="form-label">6. Do you have a family history of mental illness? <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="custom-radio">
+                            <input type="radio" id="family-yes" name="familyHistory" value="yes" required>
+                            <label for="family-yes">Yes</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="family-no" name="familyHistory" value="no">
+                            <label for="family-no">No</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="family-unsure" name="familyHistory" value="unsure">
+                            <label for="family-unsure">Not sure</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Treatment -->
+                <div class="form-group">
+                    <label class="form-label">7. Have you sought treatment for a mental health condition? <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="custom-radio">
+                            <input type="radio" id="treatment-yes" name="treatment" value="yes" required>
+                            <label for="treatment-yes">Yes</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="treatment-no" name="treatment" value="no">
+                            <label for="treatment-no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Days Indoors -->
+                <div class="form-group">
+                    <label class="form-label">8. How many days per week do you spend mostly indoors? <span class="required">*</span></label>
+                    <input type="number" class="form-control" id="daysIndoors" name="daysIndoors" min="0" max="7" placeholder="e.g., 5" required>
+                </div>
+
+                <!-- Growing Stress -->
+                <div class="form-group">
+                    <label class="form-label">9. Do you feel your stress levels are growing? <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="custom-radio">
+                            <input type="radio" id="stress-yes" name="growingStress" value="yes" required>
+                            <label for="stress-yes">Yes</label>
+                        </div>
+                        <div class="custom-radio">
+                            <input type="radio" id="stress-no" name="growingStress" value="no">
+                            <label for="stress-no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Changes in Habits -->
+                <div class="form-group">
+                    <label class="form-label">10. Have you noticed changes in your habits or behavior recently? <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="custom-checkbox">
+                            <input type="radio" id="habits-yes" name="changesHabits" value="yes" required>
+                            <label for="habits-yes">Yes</label>
+                        </div>
+                        <div class="custom-checkbox">
+                            <input type="radio" id="habits-no" name="changesHabits" value="no">
+                            <label for="habits-no">No</label>
+                        </div>
+                        <div class="custom-checkbox">
+                            <input type="radio" id="habits-maybe" name="changesHabits" value="maybe">
+                            <label for="habits-maybe">Maybe</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-submit">
+                    <i class="fas fa-check-circle"></i> Complete Profile & Continue
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Set user name from server-provided context (if available)
+    const fullName = "{{ full_name|default:'John Doe'|escapejs }}";
+    const firstName = fullName ? fullName.split(' ')[0] : 'John';
+    document.getElementById('userName').textContent = fullName;
+    document.getElementById('welcomeName').textContent = firstName;
+
+        // Form submission with validation
+        document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // helper to show alert
+            function show(msg) {
+                alert(msg);
+            }
+
+            // Read and validate age
+            const ageEl = document.getElementById('age');
+            const ageRaw = ageEl && ageEl.value ? ageEl.value.trim() : '';
+            const age = ageRaw === '' ? null : Number(ageRaw);
+            if (age === null || Number.isNaN(age) || age < 13 || age > 120) {
+                show('Please enter a valid age (13 - 120).');
+                ageEl.focus();
+                return;
+            }
+
+            // Collect and validate required radio/select fields safely
+            function getCheckedValue(name) {
+                const el = document.querySelector('input[name="' + name + '"]:checked');
+                return el ? el.value : null;
+            }
+
+            const gender = getCheckedValue('gender');
+            const familyHistory = getCheckedValue('familyHistory');
+            const treatment = getCheckedValue('treatment');
+            const growingStress = getCheckedValue('growingStress');
+            const changesHabits = getCheckedValue('changesHabits');
+
+            if (!gender) { show('Please select your gender.'); return; }
+            if (!familyHistory) { show('Please indicate family history.'); return; }
+            if (!treatment) { show('Please indicate whether you sought treatment.'); return; }
+            if (!growingStress) { show('Please indicate whether your stress is growing.'); return; }
+            if (!changesHabits) { show('Please indicate changes in habits.'); return; }
+
+            const sleepHoursRaw = document.getElementById('sleepHours').value.trim();
+            const watchTimeRaw = document.getElementById('watchTime').value.trim();
+            const daysIndoorsRaw = document.getElementById('daysIndoors').value.trim();
+            const occupation = document.getElementById('occupation').value;
+
+            // Validate numeric fields
+            const sleepHours = sleepHoursRaw === '' ? null : Number(sleepHoursRaw);
+            const watchTime = watchTimeRaw === '' ? null : Number(watchTimeRaw);
+            const daysIndoors = daysIndoorsRaw === '' ? null : Number(daysIndoorsRaw);
+
+            if (sleepHours === null || Number.isNaN(sleepHours) || sleepHours < 0 || sleepHours > 24) { show('Please enter valid sleep hours (0-24).'); return; }
+            if (watchTime === null || Number.isNaN(watchTime) || watchTime < 0 || watchTime > 24) { show('Please enter valid screen time hours (0-24).'); return; }
+            if (daysIndoors === null || Number.isNaN(daysIndoors) || daysIndoors < 0 || daysIndoors > 7) { show('Please enter valid days indoors (0-7).'); return; }
+            if (!occupation) { show('Please select your occupation.'); return; }
+
+            // Build payload to match backend expectations
+            const countryEl = document.getElementById('country');
+            const country = countryEl ? countryEl.value : 'India';
+
+            // If you later add an explicit self-employed input, prefer it; otherwise infer from occupation
+            const selfEl = document.querySelector('input[name="selfEmployed"]:checked');
+            const self_employed = selfEl ? (selfEl.value === 'yes' ? 'Yes' : 'No') : (occupation === 'others' ? 'Yes' : 'No');
+
+            function mapYesNoUnsure(val){
+                if(!val) return null;
+                if(val === 'yes') return 'Yes';
+                if(val === 'no') return 'No';
+                if(val === 'unsure') return 'Not sure';
+                if(val === 'maybe') return 'Maybe';
+                return val;
+            }
+
+            const formData = {
+                age: age,
+                gender: gender,                       // 'male'|'female'|'other' etc.
+                country: country,
+                occupation: occupation,
+                self_employed: self_employed,         // 'Yes' or 'No'
+                family_history: mapYesNoUnsure(familyHistory),
+                treatment: mapYesNoUnsure(treatment),
+                days_indoors: daysIndoors,            // numeric (0-7)
+                Days_Indoors: daysIndoors,           // some ML code may expect this key
+                growing_stress: mapYesNoUnsure(growingStress),
+                changes_habits: mapYesNoUnsure(changesHabits),
+                sleep_hours: sleepHours,
+                screen_hours: watchTime
+            };
+            console.log('Submitting form data:', formData);
+            // Show loading state
+            const submitBtn = document.querySelector('.btn-submit');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            submitBtn.disabled = true;
+
+            // Submit data to server
+            fetch('/survey/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show AI prediction animation
+                    const overlay = document.createElement('div');
+                    overlay.className = 'prediction-overlay';
+                    overlay.innerHTML = `
+                        <div class="prediction-content">
+                            <div class="brain-wave">
+                                <i class="fas fa-brain fa-pulse"></i>
+                            </div>
+                            <h3>AI Model Processing</h3>
+                            <div class="prediction-steps">
+                                <div class="step"><i class="fas fa-check-circle"></i> Analyzing survey data</div>
+                                <div class="step"><i class="fas fa-spinner fa-spin"></i> Processing mental health patterns</div>
+                                <div class="step pending"><i class="fas fa-clock"></i> Generating insights</div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    // Animate steps
+                    const steps = overlay.querySelectorAll('.step');
+                    setTimeout(() => {
+                        steps[1].innerHTML = '<i class="fas fa-check-circle"></i> Processing mental health patterns';
+                        steps[2].innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating insights';
+                        steps[2].classList.remove('pending');
+                    }, 1000);
+
+                    setTimeout(() => {
+                        steps[2].innerHTML = '<i class="fas fa-check-circle"></i> Generating insights';
+                        overlay.querySelector('.prediction-content').innerHTML += '<div class="success-message">Analysis complete! Redirecting to your results...</div>';
+                        // Redirect after showing completion
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1000);
+                    }, 2000);
+                } else {
+                    // Show error animation
+                    const errorOverlay = document.createElement('div');
+                    errorOverlay.className = 'error-overlay';
+                    errorOverlay.innerHTML = `
+                        <div class="error-content">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Oops! Something went wrong</h3>
+                            <p>${data.message || 'An error occurred while processing your survey'}</p>
+                            <button class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Close</button>
+                        </div>
+                    `;
+                    document.body.appendChild(errorOverlay);
+                }
+            })
+            .catch(error => {
+                // Show error message
+                alert(error.message);
+                
+                // Reset button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session and redirect to login
+                console.log('Logging out...');
+                window.location.href = '/login';
+            }
+        }
+
+        // Add smooth animations on input focus
+        const inputs = document.querySelectorAll('.form-control, .form-select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.01)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

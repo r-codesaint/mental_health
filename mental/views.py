@@ -1,0 +1,341 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import User, SurveyResponse
+import json
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+import joblib
+import os
+import numpy as np
+
+# def home(request):
+#     User=User.objects.all()
+
+def index(request):
+    # Landing page (index). User starts here and can go to login or signup.
+    return render(request, "mental/index.html")
+
+
+def dashboard(request):
+    # Home/dashboard page shown after completing the survey
+    # Require a logged in user (redirect to login if missing)
+    full_name = request.session.get('user_name')
+    if not full_name:
+        return redirect('mental:login')
+
+    mood_prediction = request.session.get('mood_prediction', None)
+    # Pass prediction (or default) to template
+    return render(request, "mental/home.html", {"mood_prediction": mood_prediction, "full_name": full_name})
+
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+
+            if not email or not password:
+                return JsonResponse({'status': 'error', 'message': 'Email and password are required'}, status=400)
+
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return JsonResponse({'status': 'error', 'message': 'Invalid email or password'}, status=400)
+
+            # Note: passwords are stored in plain text in the current User model.
+            # In production, use Django's auth system and hashed passwords.
+            if user.password != password:
+                return JsonResponse({'status': 'error', 'message': 'Invalid email or password'}, status=400)
+
+            # Save user info into session so survey page can display name
+            request.session['user_email'] = user.email
+            request.session['user_name'] = f"{user.first_name} {user.last_name}"
+
+            return JsonResponse({'status': 'success', 'redirect': '/survey/'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return render(request, "mental/login.html")
+
+@csrf_exempt
+def signup(request):
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from request body
+            data = json.loads(request.body)
+            
+            # Extract form data
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            first_name = data.get('firstName')
+            last_name = data.get('lastName')
+            
+            # Validate required fields
+            if not all([username, email, password, first_name, last_name]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'All fields are required'
+                }, status=400)
+            
+            # Check if username already exists
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Username already exists'
+                }, status=400)
+            
+            # Check if email already exists
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Email already exists'
+                }, status=400)
+            
+            # Create new user
+            user = User.objects.create(
+                username=username,
+                email=email,
+                password=password,  # In a real app, hash this password
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'User created successfully',
+                'redirect': '/login/'  # Frontend will handle redirect
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+    
+    # GET request - render signup page
+    return render(request, "mental/signup.html")
+@csrf_exempt
+def survey(request):
+    # Get user name from session and pass to template
+    full_name = request.session.get('user_name')
+    user_email = request.session.get('user_email')
+    
+    if not full_name or not user_email:
+        # Not logged in; redirect to login
+        return redirect('mental:login')
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            data['mood_swings'] = 'Medium' 
+            data['Mental_Health_Hist']=data.get('treatment')
+            data['Coping_Struggles'] = 'false'
+            data['Work_Interest'] = 'No'
+            data['Social_Weakness'] = 'No' 
+            data['mental_health_interview'] =data.get('treatment')
+            data['care_options'] ='No'
+              # Default value for Mental_Health_Interview
+            user = User.objects.get(email=user_email)
+
+            # Create survey response
+            survey_response = SurveyResponse.objects.create(
+                user=user,
+                gender=data.get('gender'),
+                country=data.get('country'),
+                occupation=data.get('occupation'),
+                self_employed=data.get('self_employed'),
+                family_history=data.get('family_history'),
+                treatment=data.get('treatment'),
+                days_indoors=data.get('days_indoors'),
+                growing_stress=data.get('growing_stress'),
+                changes_habits=data.get('changes_habits'),
+                Mood_Swings=data.get('mood_swings'),
+                Mental_Health_Hist=data.get('Mental_Health_Hist'),
+                Coping_Struggles=data.get('Coping_Struggles'),
+                Work_Interest=data.get('Work_Interest'),
+                Social_Weakness=data.get('Social_Weakness'),
+                mental_health_interview=data.get('mental_health_interview'),
+                care_options=data.get('care_options')
+            )
+
+            # --- Prepare data for ML model (align feature names to training) ---
+            meta_path = os.path.join(os.path.dirname(__file__), 'model_meta.joblib')
+            if os.path.exists(meta_path):
+                meta = joblib.load(meta_path)
+                feature_cols = meta.get('columns', [])
+                label_encoders = meta.get('label_encoders', {})
+                country_map = meta.get('country_map', {})
+            else:
+                feature_cols = None
+                label_encoders = {}
+                country_map = {}
+
+            # Build a zero-filled row matching the training columns
+            if feature_cols:
+                row = dict.fromkeys(feature_cols, 0)
+
+                # Gender: training used LabelEncoder -> numeric
+                if 'Gender' in row:
+                    try:
+                        le = label_encoders.get('Gender')
+                        if le is not None:
+                            row['Gender'] = int(le.transform([data.get('gender')])[0])
+                        else:
+                            # fallback: simple mapping
+                            g = data.get('gender', '').lower()
+                            row['Gender'] = 0 if g in ('male','m') else (1 if g in ('female','f') else 2)
+                    except Exception:
+                        row['Gender'] = 0
+
+                # Country: use saved mapping if available
+                if 'Country' in row:
+                    c = data.get('country')
+                    try:
+                        if c in country_map:
+                            row['Country'] = float(country_map[c])
+                        else:
+                            # fallback: numeric encode unknown countries to 0
+                            row['Country'] = 0.0
+                    except Exception:
+                        row['Country'] = 0.0
+
+                # Label-encoded booleans
+                for col_name in ('self_employed', 'family_history', 'treatment', 'Coping_Struggles'):
+                    if col_name in row:
+                        raw = data.get(col_name) or data.get(col_name.lower())
+                        if raw is None:
+                            row[col_name] = 0
+                        else:
+                            try:
+                                le = label_encoders.get(col_name)
+                                if le is not None:
+                                    row[col_name] = int(le.transform([raw])[0])
+                                else:
+                                    row[col_name] = 1 if str(raw).lower() in ('yes','y','true','1') else 0
+                            except Exception:
+                                row[col_name] = 1 if str(raw).lower() in ('yes','y','true','1') else 0
+
+                # One-hot columns: Occupation_*, Days_Indoors_*, Growing_Stress_*, Changes_Habits_*
+                def set_onehot(prefix, value):
+                    if value is None:
+                        return
+                    for c in feature_cols:
+                        if c.startswith(prefix + '_'):
+                            suffix = c.split(prefix + '_', 1)[1]
+                            # compare lowercased normalized forms
+                            if suffix.replace(' ', '').replace('-', '').lower() == str(value).replace(' ', '').replace('-', '').lower():
+                                row[c] = 1
+
+                set_onehot('Occupation', data.get('occupation'))
+                set_onehot('Days_Indoors', data.get('days_indoors'))
+                set_onehot('Growing_Stress', data.get('growing_stress'))
+                set_onehot('Changes_Habits', data.get('changes_habits'))
+
+                # Numeric conveniences
+                if 'Days_Indoors' in row and isinstance(data.get('days_indoors'), (int, float)):
+                    # If training expects categories like '1-14 days', leave one-hot above to set correct bin
+                    pass
+
+                input_df = pd.DataFrame([row], columns=feature_cols)
+            else:
+                # No meta available — try a minimal DataFrame with keys we received
+                input_df = pd.DataFrame([{
+                    'Gender': data.get('gender'),
+                    'Country': data.get('country'),
+                    'Occupation': data.get('occupation'),
+                    'self_employed': data.get('self_employed'),
+                    'family_history': data.get('family_history'),
+                    'treatment': data.get('treatment'),
+                    'Days_Indoors': data.get('days_indoors'),
+                    'Growing_Stress': data.get('growing_stress'),
+                    'Changes_Habits': data.get('changes_habits'),
+                    'Mood_Swings': data.get('mood_swings'),
+                    'Mental_Health_Hist': data.get('Mental_Health_Hist'),
+                    'Coping_Struggles': data.get('Coping_Struggles'),
+                    'Work_Interest': data.get('Work_Interest'),
+                    'Social_Weakness': data.get('Social_Weakness'),
+                    'mental_health_interview': data.get('mental_health_interview'),
+                    'care_options': data.get('care_options')
+                }])
+
+            # Load the trained model
+            model_path = os.path.join(os.path.dirname(__file__), 'trained_model.joblib')
+            model = joblib.load(model_path)
+
+            # Make prediction(s). The saved artifact may be a dict of models or a single model.
+            mood_level = 'Medium'  # default
+            try:
+                if isinstance(model, dict):
+                    # Expect keys like 'high','low','medium'
+                    ph = model.get('high').predict(input_df)[0].ravel()[0] if model.get('high') is not None else 0
+                    pl = model.get('low').predict(input_df)[0].ravel()[0] if model.get('low') is not None else 0
+                    pm = model.get('medium').predict(input_df)[0].ravel()[0] if model.get('medium') is not None else 0
+                    if ph == 1:
+                        mood_level = 'High'
+                    elif pl == 1:
+                        mood_level = 'Low'
+                    elif pm == 1:
+                        mood_level = 'Medium'
+                    else:
+                        mood_level = 'Medium'
+                else:
+                    # Single model (likely a MultiOutputClassifier trained for one target)
+                    pred = model.predict(input_df)
+                    # pred may be shape (1,1) or (1,)
+                    val = None
+                    try:
+                        val = np.array(pred).ravel()[0]
+                    except Exception:
+                        val = pred[0][0] if hasattr(pred[0], '__iter__') else pred[0]
+                    mood_level = 'High' if int(val) == 1 else 'Medium'
+            except Exception as e:
+                # Prediction failed — keep default and log
+                print('Prediction error:', e)
+
+            # Save prediction
+            survey_response.mood_prediction = mood_level
+            survey_response.save()
+
+            # Store prediction in session for home page
+            request.session['mood_prediction'] = mood_level
+
+            return JsonResponse({
+                'status': 'success',
+                'prediction': mood_level,
+                'redirect': '/dashboard/'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
+    return render(request, "mental/survey.html", {'full_name': full_name})
+
+
+def logout_view(request):
+    """Clear the session and redirect to login."""
+    try:
+        request.session.flush()
+    except Exception:
+        # ignore session errors
+        pass
+    return redirect('mental:login')
+
+
+# def detail(request, pk):
+#     note = get_object_or_404(Note, pk=pk)
+#     return render(request, "mental/detail.html", {"note": note})

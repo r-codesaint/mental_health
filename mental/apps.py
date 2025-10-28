@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class MentalConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'mental'
+    verbose_name = 'Mental Health'
