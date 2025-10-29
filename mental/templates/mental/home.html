@@ -185,6 +185,26 @@
             animation: fadeInUp 0.5s ease;
         }
 
+        /* Recommended highlight */
+        .recommendation-card.recommended {
+            border: 3px solid rgba(255, 206, 0, 0.95);
+            box-shadow: 0 25px 60px rgba(255, 206, 0, 0.14);
+            transform: translateY(-8px);
+        }
+
+        .recommended-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 206, 0, 0.95);
+            color: #222;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            z-index: 5;
+        }
+
         .recommendation-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
@@ -821,7 +841,15 @@
             firstName: firstName,
             age: parseInt("{{ age|default:'28'|escapejs }}"),
             mentalHealthScore: parseInt("{{ mood_score|default:'72'|escapejs }}"),
-            status: "{{ status|default:'good'|escapejs }}"
+            status: "{{ status|default:'good'|escapejs }}",
+            survey: {
+                sleepHours: "{{ sleep_hours|default:''|escapejs }}",
+                screenHours: "{{ screen_hours|default:''|escapejs }}",
+                daysIndoors: "{{ survey_data.days_indoors|default:''|escapejs }}",
+                growingStress: "{{ survey_data.growing_stress|default:''|escapejs }}",
+                treatment: "{{ survey_data.treatment|default:''|escapejs }}",
+                familyHistory: "{{ survey_data.family_history|default:''|escapejs }}"
+            }
         };
 
         // Function to fetch latest score
@@ -843,6 +871,16 @@
                                 moodElement.innerHTML = `<strong>Mood Level:</strong> ${data.data.mood_prediction}`;
                             }
                         }
+                        // Update optional survey numeric fields returned by the API
+                        if (data.data.sleep_hours !== undefined) {
+                            userData.survey.sleepHours = data.data.sleep_hours;
+                        }
+                        if (data.data.screen_hours !== undefined) {
+                            userData.survey.screenHours = data.data.screen_hours;
+                        }
+
+                        // Re-run recommendation highlighting when score/data updates
+                        highlightRecommendations();
                     } else {
                         console.error('Failed to fetch score:', data.message);
                     }
@@ -859,7 +897,57 @@
             
             // Refresh score every 30 seconds
             setInterval(fetchLatestScore, 30000);
+            // Also run recommendation highlighting once using server-provided context values
+            highlightRecommendations();
         };
+
+        // Highlight recommendations based on recent survey values for the current user
+        function highlightRecommendations() {
+            try {
+                const s = userData.survey;
+                // Normalize numeric values
+                const sleep = s.sleepHours === null || s.sleepHours === 'null' ? null : Number(s.sleepHours);
+                const screen = s.screenHours === null || s.screenHours === 'null' ? null : Number(s.screenHours);
+                const days = s.daysIndoors === '' ? null : Number(s.daysIndoors);
+                const growing = (s.growingStress || '').toString().toLowerCase();
+                const treatment = (s.treatment || '').toString().toLowerCase();
+                const family = (s.familyHistory || '').toString().toLowerCase();
+
+                // Utility to add badge and class
+                function mark(selector) {
+                    const el = document.querySelector(selector);
+                    if (!el) return;
+                    el.classList.add('recommended');
+                    if (!el.querySelector('.recommended-badge')) {
+                        const badge = document.createElement('div');
+                        badge.className = 'recommended-badge';
+                        badge.textContent = 'Recommended';
+                        el.style.position = 'relative';
+                        el.appendChild(badge);
+                    }
+                }
+
+                // Condition 1: poor sleep (<5), high screen (>7), mostly indoors (>4)
+                if (sleep !== null && screen !== null && days !== null && sleep < 5 && screen > 7 && days > 4) {
+                    mark('.fitness-card');
+                    mark('.travel-card');
+                }
+
+                // Condition 2: decent sleep (>5), low screen (<5), but growing stress === 'yes'
+                if (sleep !== null && screen !== null && sleep > 5 && screen < 5 && growing === 'yes') {
+                    mark('.music-card');
+                    mark('.movie-card');
+                }
+
+                // Condition 3: treatment === 'yes' or family_history === 'yes'
+                if (treatment === 'yes' || family === 'yes') {
+                    mark('.ngo-card');
+                    mark('.counselor-card');
+                }
+            } catch (err) {
+                console.error('Error highlighting recommendations:', err);
+            }
+        }
 
         function updateDashboard() {
             const score = userData.mentalHealthScore;

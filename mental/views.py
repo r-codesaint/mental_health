@@ -57,6 +57,10 @@ def dashboard(request):
                 'changes_habits': latest_survey.changes_habits if latest_survey else '',
             }
         }
+        # Also expose recently-submitted numeric sleep/screen values from session if available
+        # (these are set during survey POST). Fall back to None or values on latest_survey if model is updated.
+        context['sleep_hours'] = request.session.get('sleep_hours', None)
+        context['screen_hours'] = request.session.get('screen_hours', None)
         return render(request, "mental/home.html", context)
     except User.DoesNotExist:
         return redirect('mental:login')
@@ -344,6 +348,21 @@ def survey(request):
             # Store prediction and score in session for home page
             request.session['mood_prediction'] = mood_level
             request.session['mood_score'] = mood_score
+            # Also store recently-submitted survey numeric values so frontend can access them
+            try:
+                # keep as simple JSON-serializable types
+                request.session['sleep_hours'] = float(data.get('sleep_hours')) if data.get('sleep_hours') is not None else None
+            except Exception:
+                request.session['sleep_hours'] = None
+            try:
+                request.session['screen_hours'] = float(data.get('screen_hours')) if data.get('screen_hours') is not None else None
+            except Exception:
+                request.session['screen_hours'] = None
+
+            request.session['days_indoors'] = data.get('days_indoors')
+            request.session['growing_stress'] = data.get('growing_stress')
+            request.session['family_history'] = data.get('family_history')
+            request.session['treatment'] = data.get('treatment')
 
             return JsonResponse({
                 'status': 'success',
@@ -391,7 +410,10 @@ def get_latest_score(request):
                 'data': {
                     'mood_score': latest_survey.mood_score,
                     'mood_prediction': latest_survey.mood_prediction,
-                    'created_at': latest_survey.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                    'created_at': latest_survey.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    # Include any session-provided numeric values (sleep/screen) when available
+                    'sleep_hours': request.session.get('sleep_hours', None),
+                    'screen_hours': request.session.get('screen_hours', None)
                 }
             })
         else:
@@ -400,7 +422,9 @@ def get_latest_score(request):
                 'data': {
                     'mood_score': 50,  # default score
                     'mood_prediction': 'Medium',
-                    'created_at': None
+                    'created_at': None,
+                    'sleep_hours': request.session.get('sleep_hours', None),
+                    'screen_hours': request.session.get('screen_hours', None)
                 }
             })
             
